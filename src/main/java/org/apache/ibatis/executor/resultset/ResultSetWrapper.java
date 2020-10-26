@@ -57,8 +57,11 @@ public class ResultSetWrapper {
     final ResultSetMetaData metaData = rs.getMetaData();
     final int columnCount = metaData.getColumnCount();
     for (int i = 1; i <= columnCount; i++) {
+      // 字段名
       columnNames.add(configuration.isUseColumnLabel() ? metaData.getColumnLabel(i) : metaData.getColumnName(i));
+      // jdbc 字段类型
       jdbcTypes.add(JdbcType.forCode(metaData.getColumnType(i)));
+      // java 字段类型
       classNames.add(metaData.getColumnClassName(i));
     }
   }

@@ -40,10 +40,19 @@ public final class MappedStatement {
   private Integer timeout;
   private StatementType statementType;
   private ResultSetType resultSetType;
+
+  // 动态sql 由 DynamicSqlSource 实现，其中包含 嵌套的 SqlNode，
+  // 比如：where 标签是一个 WhereSqlNode，if 标签是一个 IfSqlNode
   private SqlSource sqlSource;
   private Cache cache;
+
+  // 封装参数，对象中包含多个 ParameterMapping 对象
   private ParameterMap parameterMap;
+
+  // 返回结果映射关系 ResultMap 中包含多个 ResultMapping，ResultMapping 中包含 TypeHandler，可以根据 TypeHandler 去解析字段放到bean中
+  // TypeHandler 可以自定义扩展，比如自定义一个枚举字段类型的通用解析器，或者做时间类型格式化转换器 等等
   private List<ResultMap> resultMaps;
+
   private boolean flushCacheRequired;
   private boolean useCache;
   private boolean resultOrdered;
@@ -302,6 +311,9 @@ public final class MappedStatement {
   }
 
   public BoundSql getBoundSql(Object parameterObject) {
+
+    // sqlSource 中调用 嵌套 SqlNode 的 apply 方法来拼装sql
+    // 动态sql实现类是 DynamicSqlSource
     BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings == null || parameterMappings.isEmpty()) {

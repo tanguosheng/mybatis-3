@@ -1,17 +1,12 @@
 /**
- *    Copyright 2009-2020 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2020 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing permissions and limitations under the License.
  */
 package org.apache.ibatis.builder.xml;
 
@@ -100,23 +95,56 @@ public class XMLConfigBuilder extends BaseBuilder {
     return configuration;
   }
 
+  /**
+   * 解析配置文件
+   * 解析流程结束后会生成一个 Configuration 对象，包含所有配置信息，
+   * 然后会创建一个 SqlSessionFactory 对象，这个对象包含了 Configuration 对象。
+   * @param root
+   */
   private void parseConfiguration(XNode root) {
     try {
       // issue #117 read properties first
+      // 解析 properties 标签，并set到 Configuration 对象中
+      // 在 properties 配置属性后，在 Mybatis 的配置文件中就可以用${key}的形式使用了。
       propertiesElement(root.evalNode("properties"));
+
+      // 解析 setting 标签的配置
       Properties settings = settingsAsProperties(root.evalNode("settings"));
+      // 添加vfs的自定义实现，这个功能不怎么用
       loadCustomVfs(settings);
       loadCustomLogImpl(settings);
+
+      // 配置类的别名，配置后就可以用别名来替代全限定名
+      // mybatis 默认设置了很多别名，参考附录部分
       typeAliasesElement(root.evalNode("typeAliases"));
+
+      // 解析拦截器和拦截器的属性，set 到 Configuration 的 interceptorChain 中
+      // MyBatis 允许你在已映射语句执行过程中的某一点进行拦截调用。默认情况下，MyBatis 允许使用插件来拦截的方法调用 包括:
+      // Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)
+      // ParameterHandler (getParameterObject, setParameters)
+      // ResultSetHandler (handleResultSets, handleOutputParameters)
+      // StatementHandler (prepare, parameterize, batch, update, query)
       pluginElement(root.evalNode("plugins"));
+
+      // Mybatis 创建对象是会使用 objectFactory 来创建对象，一般情况下不会自己配置这个 objectFactory，使用系统默认的 objectFactory 就好了
       objectFactoryElement(root.evalNode("objectFactory"));
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+
+      // 设置在setting标签中配置的配置
       settingsElement(settings);
+
       // read it after objectFactory and objectWrapperFactory issue #631
+      // 解析环境信息，包括事物管理器和数据源，SqlSessionFactoryBuilder 在解析时需要指定环境id，如果不指定的话，会选择默认的环境;
+      // 最后将这些信息 set 到 Configuration 的 Environment 属性里面
       environmentsElement(root.evalNode("environments"));
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+
+      // 无论是 MyBatis 在预处理语句(PreparedStatement)中设置一个参数时，还是从结果集中取出一个值时，
+      // 都会用类型 处理器将获取的值以合适的方式转换成 Java 类型。解析 typeHandler。
       typeHandlerElement(root.evalNode("typeHandlers"));
+
+      // 解析Mapper
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -145,7 +173,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       for (String clazz : clazzes) {
         if (!clazz.isEmpty()) {
           @SuppressWarnings("unchecked")
-          Class<? extends VFS> vfsImpl = (Class<? extends VFS>)Resources.classForName(clazz);
+          Class<? extends VFS> vfsImpl = (Class<? extends VFS>) Resources.classForName(clazz);
           configuration.setVfsImpl(vfsImpl);
         }
       }
@@ -237,6 +265,7 @@ public class XMLConfigBuilder extends BaseBuilder {
         defaults.putAll(vars);
       }
       parser.setVariables(defaults);
+      // 最终解析出来的配置都会放置到 configuration 对象中
       configuration.setVariables(defaults);
     }
   }
@@ -282,10 +311,12 @@ public class XMLConfigBuilder extends BaseBuilder {
         if (isSpecifiedEnvironment(id)) {
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
+
+          // 可以配置为Mybatis默认的连接池 org.apache.ibatis.datasource.pooled.PooledDataSource.java
           DataSource dataSource = dsFactory.getDataSource();
           Environment.Builder environmentBuilder = new Environment.Builder(id)
-              .transactionFactory(txFactory)
-              .dataSource(dataSource);
+            .transactionFactory(txFactory)
+            .dataSource(dataSource);
           configuration.setEnvironment(environmentBuilder.build());
         }
       }
@@ -363,13 +394,17 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
-        if ("package".equals(child.getName())) {
+
+        if ("package".equals(child.getName())) { // 指定一个包名
+
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
         } else {
-          String resource = child.getStringAttribute("resource");
-          String url = child.getStringAttribute("url");
-          String mapperClass = child.getStringAttribute("class");
+
+          String resource = child.getStringAttribute("resource"); // 物理路径的配置文件地址
+          String url = child.getStringAttribute("url"); // 指定一个xml
+          String mapperClass = child.getStringAttribute("class"); // 指定mapper接口
+
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             InputStream inputStream = Resources.getResourceAsStream(resource);

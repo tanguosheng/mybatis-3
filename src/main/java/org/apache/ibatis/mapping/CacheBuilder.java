@@ -126,11 +126,15 @@ public class CacheBuilder {
         ((ScheduledCache) cache).setClearInterval(clearInterval);
       }
       if (readWrite) {
+        // 序列化缓存实现
         cache = new SerializedCache(cache);
       }
+      // Logging缓存实现
       cache = new LoggingCache(cache);
+      // 同步缓存实现
       cache = new SynchronizedCache(cache);
       if (blocking) {
+        // 阻塞缓存实现
         cache = new BlockingCache(cache);
       }
       return cache;

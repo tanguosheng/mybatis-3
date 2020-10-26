@@ -45,6 +45,7 @@ public class Invocation {
     return args;
   }
 
+  // 调用proceed方法继续执行调用链路
   public Object proceed() throws InvocationTargetException, IllegalAccessException {
     return method.invoke(target, args);
   }

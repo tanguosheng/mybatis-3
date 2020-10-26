@@ -22,9 +22,12 @@ import java.util.Properties;
  */
 public interface Interceptor {
 
+  // 插件拦截会调用到 intercept 方法中，
+  // 执行完增强方法后需调用 invocation.proceed(); 来继续执行原有调用链路
   Object intercept(Invocation invocation) throws Throwable;
 
   default Object plugin(Object target) {
+    // 为对象做代理包装
     return Plugin.wrap(target, this);
   }
 

@@ -1,17 +1,12 @@
 /**
- *    Copyright 2009-2020 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2020 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing permissions and limitations under the License.
  */
 package org.apache.ibatis.executor;
 
@@ -84,22 +79,39 @@ public class CachingExecutor implements Executor {
 
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+
+    // 通过参数对象解析sql
     BoundSql boundSql = ms.getBoundSql(parameterObject);
+    // 创建缓存key，key中包含但不止：
+    // MappedStatement.id、sqlId（到Dao中方法级别）、SQL语句、参数
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
+    // 执行 query 方法
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
-      throws SQLException {
+    throws SQLException {
+
+    // 判断 mapper 是否开启了二级缓存
     Cache cache = ms.getCache();
     if (cache != null) {
+
+      // 判断是否需要刷新缓存
       flushCacheIfRequired(ms);
+
       if (ms.isUseCache() && resultHandler == null) {
+
         ensureNoOutParams(ms, boundSql);
+
+        // 先去二级缓存中获取 这里加了一层事务的缓存实现
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
+
+        // 二级缓存中没获取到
         if (list == null) {
+          // 执行 Executor（可能有插件delegate） 查询数据库
+          // 这里query调用到的是 BaseExecutor 中的
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
           tcm.putObject(cache, key, list); // issue #578 and #116
         }

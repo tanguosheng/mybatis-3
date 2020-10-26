@@ -1,6 +1,14 @@
 MyBatis SQL Mapper Framework for Java
 =====================================
 
+中文注释参考项目
+
+阅读顺序：
+org.apache.ibatis.session.SqlSessionFactoryBuilder.build(java.io.Reader) -> 
+org.apache.ibatis.session.defaults.DefaultSqlSessionFactory.openSession() -> 
+org.apache.ibatis.session.defaults.DefaultSqlSession.selectOne(java.lang.String)
+
+
 [![Build Status](https://travis-ci.org/mybatis/mybatis-3.svg?branch=master)](https://travis-ci.org/mybatis/mybatis-3)
 [![Coverage Status](https://coveralls.io/repos/mybatis/mybatis-3/badge.svg?branch=master&service=github)](https://coveralls.io/github/mybatis/mybatis-3?branch=master)
 [![Maven central](https://maven-badges.herokuapp.com/maven-central/org.mybatis/mybatis/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.mybatis/mybatis)

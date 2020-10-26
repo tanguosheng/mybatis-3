@@ -54,18 +54,27 @@ public class XMLStatementBuilder extends BaseBuilder {
   }
 
   public void parseStatementNode() {
+    // 拿到增删改查的id
     String id = context.getStringAttribute("id");
+    // 数据库厂商id
     String databaseId = context.getStringAttribute("databaseId");
 
+    // 全局厂商id和当前sql设置的厂商id进行比对，不同的话就跳过
     if (!databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
       return;
     }
 
+    // 得到节点名字（select、insert...）
     String nodeName = context.getNode().getNodeName();
+    // 换成枚举： UNKNOWN, INSERT, UPDATE, DELETE, SELECT, FLUSH
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
+    // 是否是查询
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
+    // 默认查询不刷新缓存、其他操作刷新缓存
     boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
+    // 默认是否用cache，select用、其他不用
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
+    // 是否处理嵌套查询结果
     boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
 
     // Include Fragments before parsing
@@ -76,6 +85,8 @@ public class XMLStatementBuilder extends BaseBuilder {
     Class<?> parameterTypeClass = resolveClass(parameterType);
 
     String lang = context.getStringAttribute("lang");
+
+    // 默认用 XMLLanguageDriver 解析sql语句
     LanguageDriver langDriver = getLanguageDriver(lang);
 
     // Parse selectKey after includes and remove them.
@@ -93,13 +104,18 @@ public class XMLStatementBuilder extends BaseBuilder {
           ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
     }
 
+    // 解析sql，将sql解析成嵌套的 SqlNode （就是把动态的sql解析成嵌套的sqlNode，在用的时候递归判断条件是否满足而达到是否拼接sql的目的）
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
+
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
     Integer fetchSize = context.getIntAttribute("fetchSize");
     Integer timeout = context.getIntAttribute("timeout");
+    // 解析 parameterMap
     String parameterMap = context.getStringAttribute("parameterMap");
+    // 解析 resultType
     String resultType = context.getStringAttribute("resultType");
     Class<?> resultTypeClass = resolveClass(resultType);
+    // 解析 resultMap
     String resultMap = context.getStringAttribute("resultMap");
     String resultSetType = context.getStringAttribute("resultSetType");
     ResultSetType resultSetTypeEnum = resolveResultSetType(resultSetType);
@@ -110,6 +126,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     String keyColumn = context.getStringAttribute("keyColumn");
     String resultSets = context.getStringAttribute("resultSets");
 
+    // 最终将增删改查节点封装成 MappedStatement
     builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
         fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
         resultSetTypeEnum, flushCache, useCache, resultOrdered,

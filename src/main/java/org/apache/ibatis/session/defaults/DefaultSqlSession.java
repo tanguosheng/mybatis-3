@@ -143,7 +143,13 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
+
+      // 第一步：通过 statement 去我们的全局配置中获取 MappedStatement
       MappedStatement ms = configuration.getMappedStatement(statement);
+
+      // 第二步：通过执行器去执行sql对象，executor 可能被插件代理包裹，可能先调到插件中去
+      // 1. 包装集合类参数
+      // 2. 一般情况下 executor 为 CachingExecutor
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);

@@ -41,13 +41,23 @@ public class Plugin implements InvocationHandler {
   }
 
   public static Object wrap(Object target, Interceptor interceptor) {
+
+    // 解析插件类上的 @Intercepts 注解，查找到需要拦截的方法
+    // Map<四大拦截对象.class, Set<四大对象的Method>>
     Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
+
     Class<?> type = target.getClass();
+
+    // 根据 当前代理类型 和 @Signature指定的type进行配对，配对成功则可以代理
     Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
     if (interfaces.length > 0) {
+
+      // 创建 jdk 动态代理
       return Proxy.newProxyInstance(
           type.getClassLoader(),
           interfaces,
+
+          // InvocationHandler 是 Plugin，也就是本类，拦截时候走下边的 invoke 方法
           new Plugin(target, interceptor, signatureMap));
     }
     return target;
@@ -56,10 +66,13 @@ public class Plugin implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
+      // 判断是否是需要拦截的方法
       Set<Method> methods = signatureMap.get(method.getDeclaringClass());
       if (methods != null && methods.contains(method)) {
+        // 如果需要拦截，则调用到实现了 Interceptor 接口的自定义插件中的 intercept 方法
         return interceptor.intercept(new Invocation(target, method, args));
       }
+      // 否则调用原方法
       return method.invoke(target, args);
     } catch (Exception e) {
       throw ExceptionUtil.unwrapThrowable(e);
@@ -67,16 +80,21 @@ public class Plugin implements InvocationHandler {
   }
 
   private static Map<Class<?>, Set<Method>> getSignatureMap(Interceptor interceptor) {
+    // 取得 插件类上的 @Intercepts 注解
     Intercepts interceptsAnnotation = interceptor.getClass().getAnnotation(Intercepts.class);
     // issue #251
     if (interceptsAnnotation == null) {
       throw new PluginException("No @Intercepts annotation was found in interceptor " + interceptor.getClass().getName());
     }
+    // 取得 @Intercepts 注解内的 @Signature 属性
     Signature[] sigs = interceptsAnnotation.value();
     Map<Class<?>, Set<Method>> signatureMap = new HashMap<>();
     for (Signature sig : sigs) {
+      // 根据 @Signature 里边的 type属性、args属性、method属性找到对应的 Method，添加到集合中
+      // 组织成 Map<四大拦截对象.class, Set<四大对象的Method>>
       Set<Method> methods = signatureMap.computeIfAbsent(sig.type(), k -> new HashSet<>());
       try {
+        // 取得需要拦截的方法
         Method method = sig.type().getMethod(sig.method(), sig.args());
         methods.add(method);
       } catch (NoSuchMethodException e) {
