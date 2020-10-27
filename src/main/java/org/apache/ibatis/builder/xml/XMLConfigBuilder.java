@@ -136,6 +136,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
       // read it after objectFactory and objectWrapperFactory issue #631
       // 解析环境信息，包括事物管理器和数据源，SqlSessionFactoryBuilder 在解析时需要指定环境id，如果不指定的话，会选择默认的环境;
+      // 如果用 spring 集成 Mybatis 用 SpringManagedTransactionFactory 事务工厂，设置到 Environment 中
       // 最后将这些信息 set 到 Configuration 的 Environment 属性里面
       environmentsElement(root.evalNode("environments"));
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
@@ -309,7 +310,9 @@ public class XMLConfigBuilder extends BaseBuilder {
       for (XNode child : context.getChildren()) {
         String id = child.getStringAttribute("id");
         if (isSpecifiedEnvironment(id)) {
+          // transactionManager 工厂
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
+          // dataSource 数据源工厂
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
 
           // 可以配置为Mybatis默认的连接池 org.apache.ibatis.datasource.pooled.PooledDataSource.java

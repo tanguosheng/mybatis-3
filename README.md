@@ -4,10 +4,14 @@ MyBatis SQL Mapper Framework for Java
 中文注释参考项目
 
 阅读顺序：
-org.apache.ibatis.session.SqlSessionFactoryBuilder.build(java.io.Reader) -> 
-org.apache.ibatis.session.defaults.DefaultSqlSessionFactory.openSession() -> 
-org.apache.ibatis.session.defaults.DefaultSqlSession.selectOne(java.lang.String)
+org.apache.ibatis.session.SqlSessionFactoryBuilder.build(java.io.Reader) (解析配置构建Mybatis环境)-> 
+org.apache.ibatis.session.defaults.DefaultSqlSessionFactory.openSession() (打开Session链接)-> 
+org.apache.ibatis.session.defaults.DefaultSqlSession.selectOne(java.lang.String)(执行一条sql)
 
+
+->
+使用mapper接口时，用以下方法创建动态代理, 调用 SqlSession 中的方法
+org.apache.ibatis.session.defaults.DefaultSqlSession.getMapper
 
 [![Build Status](https://travis-ci.org/mybatis/mybatis-3.svg?branch=master)](https://travis-ci.org/mybatis/mybatis-3)
 [![Coverage Status](https://coveralls.io/repos/mybatis/mybatis-3/badge.svg?branch=master&service=github)](https://coveralls.io/github/mybatis/mybatis-3?branch=master)
