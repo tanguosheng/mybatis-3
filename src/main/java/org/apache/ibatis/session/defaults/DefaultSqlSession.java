@@ -144,7 +144,7 @@ public class DefaultSqlSession implements SqlSession {
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
 
-      // 第一步：通过 statement 去我们的全局配置中获取 MappedStatement
+      // 第一步：通过 statement 去全局配置中获取 MappedStatement
       MappedStatement ms = configuration.getMappedStatement(statement);
 
       // 第二步：通过执行器去执行sql对象，executor 可能被插件代理包裹，可能先调到插件中去

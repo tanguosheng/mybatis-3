@@ -115,7 +115,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       loadCustomLogImpl(settings);
 
       // 配置类的别名，配置后就可以用别名来替代全限定名
-      // mybatis 默认设置了很多别名，参考附录部分
+      // mybatis 默认设置了很多别名
       typeAliasesElement(root.evalNode("typeAliases"));
 
       // 解析拦截器和拦截器的属性，set 到 Configuration 的 interceptorChain 中
@@ -131,11 +131,11 @@ public class XMLConfigBuilder extends BaseBuilder {
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
 
-      // 设置在setting标签中配置的配置
+      // 设置在setting标签中的配置
       settingsElement(settings);
 
       // read it after objectFactory and objectWrapperFactory issue #631
-      // 解析环境信息，包括事物管理器和数据源，SqlSessionFactoryBuilder 在解析时需要指定环境id，如果不指定的话，会选择默认的环境;
+      // 解析环境信息，包括事务管理器和数据源，SqlSessionFactoryBuilder 在解析时需要指定环境id，如果不指定的话，会选择默认的环境;
       // 如果用 spring 集成 Mybatis 用 SpringManagedTransactionFactory 事务工厂，设置到 Environment 中
       // 最后将这些信息 set 到 Configuration 的 Environment 属性里面
       environmentsElement(root.evalNode("environments"));

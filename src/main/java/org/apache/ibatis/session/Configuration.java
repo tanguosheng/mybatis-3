@@ -10,18 +10,6 @@
  */
 package org.apache.ibatis.session;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.function.BiFunction;
-
 import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.builder.CacheRefResolver;
 import org.apache.ibatis.builder.IncompleteElementException;
@@ -89,6 +77,18 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeAliasRegistry;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.function.BiFunction;
 
 /**
  * @author Clinton Begin
@@ -632,27 +632,47 @@ public class Configuration {
     return MetaObject.forObject(object, objectFactory, objectWrapperFactory, reflectorFactory);
   }
 
-  public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
+  public ParameterHandler newParameterHandler(MappedStatement mappedStatement,
+                                              Object parameterObject,
+                                              BoundSql boundSql) {
+
     // 创建合适的 ParameterHandler
-    ParameterHandler parameterHandler = mappedStatement.getLang().createParameterHandler(mappedStatement, parameterObject, boundSql);
+    ParameterHandler parameterHandler = mappedStatement.getLang().createParameterHandler(
+      mappedStatement, parameterObject, boundSql);
+
     // 为 ParameterHandler 应用插件代理
     parameterHandler = (ParameterHandler) interceptorChain.pluginAll(parameterHandler);
+
     return parameterHandler;
   }
 
-  public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement mappedStatement, RowBounds rowBounds, ParameterHandler parameterHandler,
-                                              ResultHandler resultHandler, BoundSql boundSql) {
+  public ResultSetHandler newResultSetHandler(Executor executor,
+                                              MappedStatement mappedStatement,
+                                              RowBounds rowBounds,
+                                              ParameterHandler parameterHandler,
+                                              ResultHandler resultHandler,
+                                              BoundSql boundSql) {
+
     // 创建合适的 ResultSetHandler
-    ResultSetHandler resultSetHandler = new DefaultResultSetHandler(executor, mappedStatement, parameterHandler, resultHandler, boundSql, rowBounds);
+    ResultSetHandler resultSetHandler = new DefaultResultSetHandler(
+      executor, mappedStatement, parameterHandler, resultHandler, boundSql, rowBounds);
+
     // 为 ResultSetHandler 应用插件代理
     resultSetHandler = (ResultSetHandler) interceptorChain.pluginAll(resultSetHandler);
+
     return resultSetHandler;
   }
 
-  public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
+  public StatementHandler newStatementHandler(Executor executor,
+                                              MappedStatement mappedStatement,
+                                              Object parameterObject,
+                                              RowBounds rowBounds,
+                                              ResultHandler resultHandler,
+                                              BoundSql boundSql) {
 
     // 创建合适的 StatementHandler
-    StatementHandler statementHandler = new RoutingStatementHandler(executor, mappedStatement, parameterObject, rowBounds, resultHandler, boundSql);
+    StatementHandler statementHandler = new RoutingStatementHandler(
+      executor, mappedStatement, parameterObject, rowBounds, resultHandler, boundSql);
 
     // 为 StatementHandler 应用插件代理
     // new RoutingStatementHandler 中已经为 ParameterHandler、ResultSetHandler 创建好了拦截器代理

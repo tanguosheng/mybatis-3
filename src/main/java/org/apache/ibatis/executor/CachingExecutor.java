@@ -110,8 +110,8 @@ public class CachingExecutor implements Executor {
 
         // 二级缓存中没获取到
         if (list == null) {
-          // 执行 Executor（可能有插件delegate） 查询数据库
-          // 这里query调用到的是 BaseExecutor 中的
+          // 这里query调用到的是 BaseExecutor 中的，不会再次调用插件，插件只会包裹最外层的 Executor,
+          // #see: org.apache.ibatis.session.Configuration.newExecutor(org.apache.ibatis.transaction.Transaction, org.apache.ibatis.session.ExecutorType)
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
